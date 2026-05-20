@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiro Pro - Control Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+:root {
+    --bg-primary: #0a0a0f;
+    --bg-card: rgba(17, 17, 27, 0.8);
+    --bg-glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.06);
+    --text-primary: #f0f0f5;
+    --text-secondary: #6b7280;
+    --accent: #6366f1;
+    --accent-glow: rgba(99, 102, 241, 0.3);
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    z-index: -1;
+    animation: bgShift 20s ease-in-out infinite alternate;
+}
+@keyframes bgShift { to { transform: translate(5%, 3%); } }
+
+.app { max-width: 1440px; margin: 0 auto; padding: 24px; }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+.header h1 { font-size: 22px; font-weight: 600; background: linear-gradient(135deg, #6366f1, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header-actions { display: flex; gap: 10px; }
+
+/* Buttons */
+.btn {
+    padding: 9px 18px; border: none; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    font-family: inherit;
+}
+.btn i { font-size: 15px; }
+.btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #059669; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #dc2626; }
+.btn-ghost { background: var(--bg-glass); color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-ghost:hover { background: rgba(255,255,255,0.06); color: var(--text-primary); }
+
+/* Stats Grid */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; position: relative; overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+.stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+}
+.stat-card.success::before { background: linear-gradient(90deg, transparent, var(--success), transparent); }
+.stat-card.danger::before { background: linear-gradient(90deg, transparent, var(--danger), transparent); }
+.stat-card.warning::before { background: linear-gradient(90deg, transparent, var(--warning), transparent); }
+.stat-card .stat-value { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-card.success .stat-value { color: var(--success); }
+.stat-card.danger .stat-value { color: var(--danger); }
+.stat-card.warning .stat-value { color: var(--warning); }
+
+/* Table */
+.table-container {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; backdrop-filter: blur(10px);
+}
+.table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.table-header h3 { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+table { width: 100%; border-collapse: collapse; }
+th { padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,0,0,0.2); }
+td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--border); }
+tr:hover td { background: rgba(99, 102, 241, 0.03); }
+.badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500;
+}
+.badge-waiting { background: rgba(107,114,128,0.15); color: #9ca3af; }
+.badge-login { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.badge-checkout { background: rgba(139,92,246,0.15); color: #a78bfa; }
+.badge-paying { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.badge-success { background: rgba(16,185,129,0.15); color: #34d399; }
+.badge-failed { background: rgba(239,68,68,0.15); color: #f87171; }
+.badge-skipped { background: rgba(107,114,128,0.1); color: #6b7280; }
+.badge i { font-size: 10px; }
+
+/* Modal */
+.modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+    background: #13131f; border: 1px solid var(--border); border-radius: 16px;
+    padding: 28px; width: 560px; max-height: 80vh; overflow-y: auto;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+}
+.modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+.modal textarea {
+    width: 100%; height: 180px; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; resize: vertical; outline: none; transition: border-color 0.2s;
+}
+.modal textarea:focus { border-color: var(--accent); }
+.modal label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; margin-top: 12px; }
+.modal input, .modal select {
+    width: 100%; padding: 9px 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text-primary); font-size: 13px; outline: none; font-family: inherit;
+}
+.modal input:focus, .modal select:focus { border-color: var(--accent); }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.modal .hint { font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; }
+
+/* History */
+.history { margin-top: 24px; }
+.history h3 { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; padding-left: 4px; }
+.history-item {
+    padding: 10px 16px; background: var(--bg-glass); border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary);
+    display: flex; justify-content: space-between;
+}
+.history-item .success-tag { color: var(--success); font-weight: 500; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+/* Pulse animation for running */
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.badge-login, .badge-paying, .badge-checkout { animation: pulse 2s ease-in-out infinite; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+.empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+.empty-state p { font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <h1><i class="ri-rocket-2-fill"></i> Kiro Pro Control Panel</h1>
+        <div class="header-actions">
+            <button class="btn btn-ghost" onclick="showModal('import-accounts')"><i class="ri-user-add-line"></i>导入账户</button>
+            <button class="btn btn-ghost" onclick="showModal('import-cards')"><i class="ri-bank-card-line"></i>导入卡密</button>
+            <button class="btn btn-ghost" onclick="showModal('config')"><i class="ri-settings-3-line"></i>配置</button>
+            <button class="btn btn-success" onclick="startTask()"><i class="ri-play-fill"></i>开始</button>
+            <button class="btn btn-danger" onclick="stopTask()"><i class="ri-stop-fill"></i>停止</button>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">总账号</div></div>
+        <div class="stat-card warning"><div class="stat-value" id="stat-running">0</div><div class="stat-label">进行中</div></div>
+        <div class="stat-card success"><div class="stat-value" id="stat-success">0</div><div class="stat-label">成功</div></div>
+        <div class="stat-card danger"><div class="stat-value" id="stat-failed">0</div><div class="stat-label">失败</div></div>
+    </div>
+
+    <div class="table-container">
+        <div class="table-header">
+            <h3><i class="ri-list-check-2"></i> 任务列表</h3>
+            <span id="status-indicator" style="font-size:12px;color:var(--text-secondary);"></span>
+        </div>
+        <div id="table-body">
+            <div class="empty-state"><i class="ri-inbox-line"></i><p>导入账户后开始运行</p></div>
+        </div>
+    </div>
+
+    <div class="history">
+        <h3><i class="ri-history-line"></i> 历史批次</h3>
+        <div id="history-list"></div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-import-accounts">
+<div class="modal">
+    <h3><i class="ri-user-add-line"></i> 导入账户</h3>
+    <div class="hint">
+        Google: 邮箱----密码----totp 或 邮箱----密码----恢复邮箱----totp/2fa链接<br>
+        Builder ID: 邮箱----接码链接
+    </div>
+    <textarea id="accounts-text" placeholder="每行一个账号，支持混合格式..."></textarea>
+    <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="hideModals()">取消</button>
+        <button class="btn btn-primary" onclick="importAccounts()">确认导入</button>
+    </div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-import-cards">
+<div class="modal">
+    <h3><i class="ri-bank-card-line"></i> 导入卡密</h3>
+    <div class="hint">每行一个卡密，或逗号分隔。支持 KM-HUAKAI-xxx 格式。</div>
+    <textarea id="cards-text" placeholder="KM-HUAKAI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-20260519..."></textarea>
+    <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="hideModals()">取消</button>
+        <button class="btn btn-primary" onclick="importCards()">确认导入</button>
+    </div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-config">
+<div class="modal">
+    <h3><i class="ri-settings-3-line"></i> 运行配置</h3>
+    <label>并发线程数</label><input type="number" id="cfg-workers" value="8" min="1" max="20">
+    <label>订阅套餐</label><select id="cfg-plan"><option value="pro">Pro ($19/月)</option><option value="pro+" selected>Pro+ ($39/月)</option></select>
+    <label>开卡渠道</label><select id="cfg-channel"><option value="huakai" selected>华开卡</option><option value="3r">3r卡</option><option value="10r">10r卡</option></select>
+    <label>每卡开号数</label><input type="number" id="cfg-per-card" value="1" min="1" max="3">
+    <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="hideModals()">取消</button>
+        <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+    </div>
+</div>
+</div>
+
+<script>
+function showModal(id) { document.getElementById('modal-'+id).classList.add('active'); }
+function hideModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
+document.querySelectorAll('.modal-overlay').forEach(m => { m.addEventListener('click', e => { if(e.target === m) hideModals(); }); });
+
+function importAccounts() {
+    const text = document.getElementById('accounts-text').value;
+    if(!text.trim()) return;
+    fetch('/api/import-accounts', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text})})
+    .then(r=>r.json()).then(d=>{ hideModals(); refresh(); });
+}
+function importCards() {
+    const text = document.getElementById('cards-text').value;
+    if(!text.trim()) return;
+    fetch('/api/import-cards', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text})})
+    .then(r=>r.json()).then(d=>{ hideModals(); });
+}
+function saveConfig() {
+    const cfg = {
+        workers: parseInt(document.getElementById('cfg-workers').value),
+        plan: document.getElementById('cfg-plan').value,
+        channel: document.getElementById('cfg-channel').value,
+        per_card: parseInt(document.getElementById('cfg-per-card').value),
+    };
+    fetch('/api/config', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(cfg)})
+    .then(r=>r.json()).then(d=>{ hideModals(); });
+}
+function startTask() { fetch('/api/start', {method:'POST'}).then(r=>r.json()).then(d=>{ refresh(); }); }
+function stopTask() { fetch('/api/stop', {method:'POST'}).then(r=>r.json()).then(d=>{ refresh(); }); }
+
+const statusMap = {
+    waiting: {text:'等待中', badge:'waiting', icon:'ri-time-line'},
+    login: {text:'登录中', badge:'login', icon:'ri-loader-4-line'},
+    checkout: {text:'获取链接', badge:'checkout', icon:'ri-link'},
+    paying: {text:'支付中', badge:'paying', icon:'ri-bank-card-line'},
+    success: {text:'已开通', badge:'success', icon:'ri-check-line'},
+    failed: {text:'失败', badge:'failed', icon:'ri-close-line'},
+    skipped: {text:'跳过', badge:'skipped', icon:'ri-skip-forward-line'},
+};
+
+function refresh() {
+    fetch('/api/state').then(r=>r.json()).then(data => {
+        document.getElementById('stat-total').textContent = data.stats.total;
+        document.getElementById('stat-running').textContent = data.stats.running;
+        document.getElementById('stat-success').textContent = data.stats.success;
+        document.getElementById('stat-failed').textContent = data.stats.failed;
+        document.getElementById('status-indicator').textContent = data.running ? '● 运行中' : '○ 空闲';
+        document.getElementById('status-indicator').style.color = data.running ? 'var(--success)' : 'var(--text-secondary)';
+
+        const tbody = document.getElementById('table-body');
+        if(data.accounts.length === 0) {
+            tbody.innerHTML = '<div class="empty-state"><i class="ri-inbox-line"></i><p>导入账户后开始运行</p></div>';
+        } else {
+            tbody.innerHTML = '<table><thead><tr><th>#</th><th>账号</th><th>模式</th><th>状态</th><th>详情</th><th>耗时</th></tr></thead><tbody>' +
+            data.accounts.map((a, i) => {
+                const s = statusMap[a.status] || statusMap.waiting;
+                return `<tr><td style="color:var(--text-secondary)">${i+1}</td><td>${a.username}</td><td style="color:var(--text-secondary)">${a.mode==='builderid'?'Builder ID':'Google'}</td><td><span class="badge badge-${s.badge}"><i class="${s.icon}"></i>${s.text}</span></td><td style="font-size:11px;color:var(--text-secondary);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.detail||'-'}</td><td style="color:var(--text-secondary);font-size:12px;">${a.elapsed||'-'}</td></tr>`;
+            }).join('') + '</tbody></table>';
+        }
+
+        const hist = document.getElementById('history-list');
+        if(data.history.length) {
+            hist.innerHTML = data.history.map(h => `<div class="history-item"><span>${h.time}</span><span>${h.total}个账号</span><span class="success-tag">${h.success}成功</span><span>${h.failed}失败</span></div>`).join('');
+        }
+
+        if(data.config.workers) document.getElementById('cfg-workers').value = data.config.workers;
+        if(data.config.plan) document.getElementById('cfg-plan').value = data.config.plan;
+        if(data.config.channel) document.getElementById('cfg-channel').value = data.config.channel;
+        if(data.config.per_card) document.getElementById('cfg-per-card').value = data.config.per_card;
+    });
+}
+setInterval(refresh, 2000);
+refresh();
+</script>
+</body>
+</html>

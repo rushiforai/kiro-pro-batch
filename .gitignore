@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+output/
+已卖出的账户密码/
+shujuku/
+*.log
+.env
