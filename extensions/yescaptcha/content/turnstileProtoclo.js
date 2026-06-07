@@ -36,20 +36,20 @@ exports.setconfig = setconfig;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// 为替换pc客户端实现一个同样的接口的对象，这样就不用改之前的captcha.js的代码了
-// 测试key  a2000da995ef93962df8a4f6d200004b1fdd4c943
-// 需实现的接口
-// 1.onopen  启动时调用
-// 2.onclose 关闭时调用
-// 3.onmessage 接收到消息时调用
-// 4.send 方法发送消息
-// onmessage  时需返回 json字符串+"##" 作为结束标志
-// 返回对象需要有 type 属性 10,表示是否开启自动识别,2表示结果,
-// 服务器版本信息
+// To implement a compatible interface object to replace PC client without modifying previous captcha.js code
+// Test key  a2000da995ef93962df8a4f6d200004b1fdd4c943
+// Required interfaces to implement:
+// 1.onopen  called when starting
+// 2.onclose called when closing
+// 3.onmessage called when receiving messages
+// 4.send method to send messages
+// onmessage should return json string + "##" as end flag
+// Return object needs to have type property 10=auto-recognition status, 2=result
+// Server version information
 
 var chrome = window.chrome;
 
-// 设置页面信息显示和隐藏
+// Set page info display and hide
 var message = exports.message = function message(_ref) {
   var _ref$text = _ref.text,
       text = _ref$text === undefined ? '' : _ref$text,
@@ -84,7 +84,7 @@ var message = exports.message = function message(_ref) {
   // message.style.color = color === 'green' ? 'red' : 'green'
 };
 
-// 设置页面信息显示和隐藏
+// Set page info display and hide
 var messageHide = exports.messageHide = function messageHide() {
   var message = document.getElementById('mymessage');
   if (message) {
@@ -92,7 +92,7 @@ var messageHide = exports.messageHide = function messageHide() {
   }
 };
 
-// 定义页面识别方法
+// Define page recognition method
 var captchaClassification = exports.captchaClassification = function () {
   var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
     var _ref3, times, result, typelist, i;
@@ -112,24 +112,24 @@ var captchaClassification = exports.captchaClassification = function () {
 
           case 6:
             result = null;
-            // 对不同页面判断的定义 title 表示使用的接口，url_keywork 为url中的关键字,div 为判断是否这个页面
+            // Type definitions for different page detection - title indicates interface used, url_keyword is keyword in url, div determines if this page
 
             typelist = [{
               title: 'imageclassification',
               url_keyword: 'recaptcha',
               div: '#recaptcha-anchor-label',
-              imagediv: '#recaptcha-token' // 图片的div 和点击的框架为两个不同的框架
+              imagediv: '#recaptcha-token' // Image div and click framework are two different frames
 
             }, {
               title: 'hcaptcha',
               url_keyword: 'hcaptcha.com',
               div: '#anchor-state',
-              imagediv: '.challenge-container' // hcaptcha 图片的div 和点击的框架为两个不同的框架
+              imagediv: '.challenge-container' // hCaptcha image div and click framework are two different frames
             }, {
               title: 'hcaptcha',
               url_keyword: 'hcaptcha-assets.ecosec.on.epicgames.com',
               div: '#anchor-state',
-              imagediv: '.challenge-container' // hcaptcha 图片的div 和点击的框架为两个不同的框架
+              imagediv: '.challenge-container' // hCaptcha image div and click framework are two different frames
             }, {
               title: 'rainbow',
               // assets-us-west-2.queue-it.net
@@ -180,7 +180,7 @@ var captchaClassification = exports.captchaClassification = function () {
   };
 }();
 
-// 网络测试
+// Network test
 function testnetwork(url) {
   return new _promise2.default(function (resolve, reject) {
     if (window.self === window.top) {
@@ -193,7 +193,7 @@ function testnetwork(url) {
   });
 }
 
-// post 请求代理
+// POST request proxy
 function post(url, data) {
   var delay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
   var tries = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
@@ -215,7 +215,7 @@ function get(url) {
   });
 }
 
-// 获取余额
+// Get balance
 function getBalance(_ref4) {
   var host = _ref4.host,
       clientKey = _ref4.clientKey;
@@ -262,7 +262,7 @@ var src2base64 = exports.src2base64 = function src2base64(src) {
     canvas.width = img.width;
     canvas.height = img.height;
     img.onload = function () {
-      // 图片加载完，再draw 和 toDataURL
+      // Image loaded, then draw and toDataURL
       context.drawImage(img, 0, 0, width, height);
       var base64 = canvas.toDataURL();
       // console.log('base64', base64)
@@ -273,11 +273,11 @@ var src2base64 = exports.src2base64 = function src2base64(src) {
   });
 };
 
-// 无需返回的错误码
+// Error codes that don't need to return
 var notneedcontinue = exports.notneedcontinue = function notneedcontinue(errorstr) {
   return errorstr && 'ERROR_REQUIRED_FIELDS\n  ERROR_KEY_DOES_NOT_EXIST\n  ERROR_ZERO_BALANCE\n  ERROR_ZERO_CAPTCHA_FILESIZE\n  ERROR_DOMAIN_NOT_ALLOWED\n  ERROR_TOO_BIG_CAPTCHA_FILESIZE\n  ERROR_ILLEGAL_IMAGE\n  ERROR_IP_BANNED\n  ERROR_IP_BLOCKED_5MIN\n  ERROR_CLIENTKEY_UNAUTHORIZED'.includes(errorstr);
 };
-// 等待dom元素存在,超时 默认10秒
+// Wait for DOM element to exist, default timeout 10 seconds
 var waitFor = exports.waitFor = function waitFor(divstr) {
   var outtime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 10;
 
@@ -294,7 +294,7 @@ var waitFor = exports.waitFor = function waitFor(divstr) {
     }, outtime * 1000);
   });
 };
-// 等待图像加载完
+// Wait for image to load
 var imageready = exports.imageready = function imageready(imgsrc) {
   return new _promise2.default(function (resolve, reject) {
     var img = new Image();
@@ -304,7 +304,7 @@ var imageready = exports.imageready = function imageready(imgsrc) {
     };
   });
 };
-// 等待背景图片属性存在
+// Wait for background image property to exist
 var waitforbackground = exports.waitforbackground = function waitforbackground(div) {
   return new _promise2.default(function (resolve, reject) {
     var timer = setInterval(function () {
@@ -316,7 +316,7 @@ var waitforbackground = exports.waitforbackground = function waitforbackground(d
   });
 };
 
-// 等待背景图片属性存在
+// Wait for background image property to exist with timeout
 var waitforbackgroundWithTimeout = exports.waitforbackgroundWithTimeout = function waitforbackgroundWithTimeout(div) {
   return new _promise2.default(function (resolve, reject) {
     var timer = setInterval(function () {
@@ -333,7 +333,7 @@ var waitforbackgroundWithTimeout = exports.waitforbackgroundWithTimeout = functi
   });
 };
 
-// 等待func返回true,超时默认10秒
+// Wait for function to return true, default timeout 10 seconds
 var waitDo = exports.waitDo = function waitDo(func) {
   var outtime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 10;
 
@@ -353,7 +353,7 @@ var waitDo = exports.waitDo = function waitDo(func) {
   });
 };
 
-// 客户端获取版本号
+// Client get version number
 
 function getLocalVersion() {
   return new _promise2.default(function (resolve) {
@@ -453,7 +453,7 @@ var getIsBlackWhitePass = exports.getIsBlackWhitePass = function () {
   };
 }();
 
-// 本地版本信息
+// Local version information
 
 function localVersion() {
   return localStorage.version ? localStorage.version : 1;
