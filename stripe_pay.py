@@ -1,5 +1,5 @@
 """
-Stripe 浏览器支付 - BitBrowser 自动填卡
+Stripe browser payment - BitBrowser auto card filling
 """
 import json
 import time
@@ -17,7 +17,7 @@ INVALID_CARD_FILE = Path(__file__).parent.parent / "shujuku" / "无效卡.json"
 
 
 def _save_invalid_card(card_info):
-    """记录无效卡"""
+    """Record invalid card"""
     INVALID_CARD_FILE.parent.mkdir(exist_ok=True)
     records = []
     if INVALID_CARD_FILE.exists():
@@ -28,10 +28,10 @@ def _save_invalid_card(card_info):
     if not any(r.get("number") == card_info.get("number") for r in records):
         records.append({"number": card_info.get("number", ""), "expiry": card_info.get("expiry", ""), "cvv": card_info.get("cvv", ""), "time": time.strftime("%Y-%m-%d %H:%M:%S")})
         INVALID_CARD_FILE.write_text(json.dumps(records, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"  [支付] 无效卡已记录: {card_info.get('number', '')[-4:]}")
+    print(f"  [Payment] Invalid card recorded: {card_info.get('number', '')[-4:]}")
 
 
-# ── 免税州地址 ──
+# ── Tax-exempt state addresses ──
 US_ADDRESSES = [
     ("Portland", "OR", "97205", "815 SW Park Ave"),
     ("Portland", "OR", "97211", "4230 NE Fremont St"),
@@ -74,9 +74,9 @@ def _random_identity():
 
 def check_amount(checkout_url, page):
     """
-    打开 Stripe Checkout 页面，检查金额是否为 $0
-    返回: "zero" | "not_zero" | "already_pro" | "error"
-    不关闭页面，后续可直接在同一页面填卡
+    Open Stripe Checkout page, check if amount is $0
+    Return: "zero" | "not_zero" | "already_pro" | "error"
+    Don't close page, can fill card directly on same page later
     """
     page.get(checkout_url)
     time.sleep(8)
@@ -88,23 +88,23 @@ def check_amount(checkout_url, page):
                    document.body.innerText.length > 50;
     """)
     if not page_ok:
-        print("  [支付] 页面加载失败")
+        print("  [Payment] Page loading failed")
         return "error"
 
     if "billing.stripe.com" in page.url:
-        print("  [支付] 已是 Pro（billing 页面）")
+        print("  [Payment] Already Pro (billing page)")
         return "already_pro"
 
     amount_el = page.ele('xpath://span[@class="CurrencyAmount"]', timeout=5)
     if amount_el:
         amount_text = amount_el.text.strip()
-        print(f"  [支付] 金额: {amount_text.encode('ascii', 'replace').decode()}")
+        print(f"  [Payment] Amount: {amount_text.encode('ascii', 'replace').decode()}")
         if "0.00" not in amount_text:
             return "not_zero"
     else:
         body_text = page.ele("tag:body").text if page.ele("tag:body") else ""
         if "0.00" not in body_text:
-            print(f"  [支付] 未检测到 $0 金额")
+            print(f"  [Payment] No $0 amount detected")
             return "not_zero"
 
     return "zero"
@@ -112,11 +112,11 @@ def check_amount(checkout_url, page):
 
 def pay(checkout_url, card_info, page, page_already_loaded=False):
     """
-    在已有的浏览器页面中打开 Stripe Checkout，自动填卡支付
-    page: DrissionPage 对象（从 auth_google.login 返回的同一个浏览器）
-    page_already_loaded: 如果为 True，跳过打开页面（已由 check_amount 完成）
-    金额检查由 check_amount 负责，这里不再重复检查
-    返回: "success" | "declined" | "invalid_card" | "error"
+    Open Stripe Checkout in existing browser page, auto fill card and pay
+    page: DrissionPage object (same browser from auth_google.login)
+    page_already_loaded: If True, skip opening page (already done by check_amount)
+    Amount check done by check_amount, no re-check here
+    Return: "success" | "declined" | "invalid_card" | "error"
     """
     if not page_already_loaded:
         page.get(checkout_url)
@@ -129,14 +129,14 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
                        document.body.innerText.length > 50;
         """)
         if not page_ok:
-            print("  [支付] 页面加载失败")
+            print("  [Payment] Page loading failed")
             return "error"
 
         if "billing.stripe.com" in page.url:
-            print("  [支付] 已是 Pro（billing 页面）")
+            print("  [Payment] Already Pro (billing page)")
             return "success"
 
-    # 生成身份
+    # Generate identity
     identity = _random_identity()
     card = {
         "number": card_info["number"],
@@ -148,9 +148,9 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
         "state": identity["state"],
         "zip": identity["zip"],
     }
-    print(f"  [支付] 卡: ...{card['number'][-4:]} | {card['name']}")
+    print(f"  [Payment] Card: ...{card['number'][-4:]} | {card['name']}")
 
-    # 选国家
+    # Select country
     country_sel = page.ele('xpath://select[contains(@aria-label,"Country") or contains(@name,"country")]', timeout=5)
     if country_sel:
         try:
@@ -162,43 +162,43 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
                 pass
         time.sleep(2)
 
-    # 填卡号
+    # Fill card number
     card_input = page.ele('xpath://input[contains(@aria-label,"Card number") or contains(@aria-label,"卡号")]', timeout=10)
     if card_input:
         card_input.input(card["number"])
         time.sleep(2)
 
-        # 检测卡号无效
+        # Detect invalid card number
         invalid_card = page.run_js("""
             var el = document.querySelector('.FieldError-container');
             if (el && el.innerText.toLowerCase().includes('invalid')) return true;
             return false;
         """)
         if invalid_card:
-            print(f"  [支付] 卡号无效: {card['number']}")
+            print(f"  [Payment] Invalid card number: {card['number']}")
             _save_invalid_card(card_info)
             return "invalid_card"
 
-    # 填有效期
+    # Fill expiry
     exp_input = page.ele('xpath://input[contains(@aria-label,"Expir") or contains(@aria-label,"到期")]', timeout=5)
     if exp_input:
         exp_input.input(card["expiry"])
         time.sleep(1)
 
-    # 填 CVV
+    # Fill CVV
     cvv_input = page.ele('xpath://input[contains(@aria-label,"CVC") or contains(@aria-label,"安全码")]', timeout=5)
     if cvv_input:
         cvv_input.input(card["cvv"])
         time.sleep(1)
 
-    # 填姓名
+    # Fill name
     name_field = page.ele('xpath://input[contains(@id,"billingName") or contains(@name,"billingName") or contains(@aria-label,"Name")]', timeout=5)
     if name_field:
         name_field.clear()
         name_field.input(card["name"])
         time.sleep(1)
 
-    # 手动输入地址
+    # Manual address entry
     manual_btn = page.ele("text:Enter address manually", timeout=3)
     if not manual_btn:
         manual_btn = page.ele("text:手动输入地址", timeout=2)
@@ -206,7 +206,7 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
         manual_btn.click()
         time.sleep(2)
 
-    # 填地址
+    # Fill address
     addr1 = page.ele('xpath://input[contains(@aria-label,"Address") or contains(@name,"addressLine1")]', timeout=5)
     if addr1:
         addr1.input(card["address"])
@@ -230,9 +230,9 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
             pass
         time.sleep(1)
 
-    print("  [支付] 信息已填写，点击订阅...")
+    print("  [Payment] Information filled, clicking subscribe...")
 
-    # 点击提交
+    # Click submit
     page.run_js("""
         var btn = document.querySelector('button.SubmitButton') || document.querySelector('button[type="submit"]');
         if (btn) { btn.scrollIntoView({block: 'center'}); }
@@ -243,14 +243,14 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
         if (btn) btn.click();
     """)
 
-    # 等待结果
+    # Wait for result
     time.sleep(10)
     for wait_i in range(60):
         if "checkout.stripe.com" not in page.url:
-            print("  [支付] 页面已跳转，支付完成")
+            print("  [Payment] Page redirected, payment complete")
             return "success"
 
-        # 检测 declined
+        # Detect declined
         declined = page.run_js("""
             var el = document.querySelector('.FieldError-container');
             if (el && el.innerText.toLowerCase().includes('declined')) return true;
@@ -259,16 +259,16 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
             return false;
         """)
         if declined:
-            print("  [支付] 卡被拒绝")
+            print("  [Payment] Card declined")
             return "declined"
 
-        # 检测 unable to authenticate
+        # Detect unable to authenticate
         auth_fail = page.run_js("""
             var body = document.body.innerText.toLowerCase();
             return body.includes('unable to authenticate');
         """)
         if auth_fail:
-            print("  [支付] unable to authenticate，重新点击...")
+            print("  [Payment] Unable to authenticate, retrying...")
             page.run_js("""
                 var btn = document.querySelector('button.SubmitButton') || document.querySelector('button[type="submit"]');
                 if (btn) btn.click();
@@ -277,10 +277,10 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
             continue
 
         if wait_i % 10 == 9:
-            print(f"  [支付] 等待中... ({(wait_i+1)*3}s)")
+            print(f"  [Payment] Waiting... ({(wait_i+1)*3}s)")
         time.sleep(3)
 
-    # 最终检查
+    # Final check
     if "checkout.stripe.com" not in page.url:
         return "success"
     return "error"

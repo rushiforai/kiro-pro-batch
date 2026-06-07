@@ -1,6 +1,6 @@
 """
-Kiro Pro 批量开通 - Web UI
-Flask + 实时状态轮询
+Kiro Pro Batch Activation - Web UI
+Flask + Real-time status polling
 """
 import sys
 import os
@@ -12,7 +12,7 @@ from pathlib import Path
 from flask import Flask, render_template, request, jsonify
 
 SCRIPT_DIR = Path(__file__).parent
-SHUJUKU_DIR = Path(__file__).parent.parent / "shujuku"
+SHUJUKU_DIR = Path(__file__).parent.parent / "database"
 
 app = Flask(__name__, template_folder=str(SCRIPT_DIR / "templates"))
 
@@ -56,20 +56,20 @@ def import_accounts():
     text = data.get("text", "")
     lines = [l.strip() for l in text.strip().splitlines() if l.strip()]
     SHUJUKU_DIR.mkdir(exist_ok=True)
-    (SHUJUKU_DIR / "传入账户.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (SHUJUKU_DIR / "input_accounts.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     accounts = []
     for line in lines:
         parts = line.split("----")
         if len(parts) == 4:
-            accounts.append({"username": parts[0], "mode": "google", "status": "waiting", "status_text": "等待", "detail": "", "elapsed": ""})
+            accounts.append({"username": parts[0], "mode": "google", "status": "waiting", "status_text": "waiting", "detail": "", "elapsed": ""})
         elif len(parts) == 3:
-            accounts.append({"username": parts[0], "mode": "google", "status": "waiting", "status_text": "等待", "detail": "", "elapsed": ""})
+            accounts.append({"username": parts[0], "mode": "google", "status": "waiting", "status_text": "waiting", "detail": "", "elapsed": ""})
         elif len(parts) == 2:
-            accounts.append({"username": parts[0], "mode": "builderid", "status": "waiting", "status_text": "等待", "detail": "", "elapsed": ""})
+            accounts.append({"username": parts[0], "mode": "builderid", "status": "waiting", "status_text": "waiting", "detail": "", "elapsed": ""})
     with _state_lock:
         task_state["accounts"] = accounts
         task_state["stats"] = {"total": len(accounts), "success": 0, "failed": 0, "running": 0, "skipped": 0}
-    return jsonify({"message": f"已导入 {len(accounts)} 个账号"})
+    return jsonify({"message": f"Imported {len(accounts)} accounts"})
 
 
 @app.route('/api/import-cards', methods=['POST'])
@@ -78,8 +78,8 @@ def import_cards():
     text = data.get("text", "")
     codes = [c.strip() for c in text.replace("\n", ",").split(",") if c.strip()]
     SHUJUKU_DIR.mkdir(exist_ok=True)
-    (SHUJUKU_DIR / "华开卡.txt").write_text("\n".join(codes) + "\n", encoding="utf-8")
-    return jsonify({"message": f"已导入 {len(codes)} 张卡密"})
+    (SHUJUKU_DIR / "huakai_cards.txt").write_text("\n".join(codes) + "\n", encoding="utf-8")
+    return jsonify({"message": f"Imported {len(codes)} card credentials"})
 
 
 @app.route('/api/config', methods=['POST'])
@@ -96,22 +96,22 @@ def save_config():
     if "per_card" in data:
         content = _re.sub(r'ACCOUNTS_PER_CARD\s*=\s*\d+', f'ACCOUNTS_PER_CARD = {data["per_card"]}', content)
     config_path.write_text(content, encoding="utf-8")
-    return jsonify({"message": "配置已保存"})
+    return jsonify({"message": "Config saved"})
 
 
 @app.route('/api/start', methods=['POST'])
 def start_task():
     if task_state["running"]:
-        return jsonify({"message": "任务已在运行中"})
+        return jsonify({"message": "Task already running"})
     t = threading.Thread(target=_run_task, daemon=True)
     t.start()
-    return jsonify({"message": "任务已启动"})
+    return jsonify({"message": "Task started"})
 
 
 @app.route('/api/stop', methods=['POST'])
 def stop_task():
     task_state["running"] = False
-    return jsonify({"message": "正在停止..."})
+    return jsonify({"message": "Stopping..."})
 
 
 def _update_account(username, **kwargs):
@@ -135,7 +135,7 @@ def _update_account(username, **kwargs):
 
 def _run_task():
     task_state["running"] = True
-    accounts_file = SHUJUKU_DIR / "传入账户.txt"
+    accounts_file = SHUJUKU_DIR / "input_accounts.txt"
     if not accounts_file.exists():
         task_state["running"] = False
         return
@@ -157,15 +157,15 @@ def _run_task():
         msg = " ".join(str(a) for a in args)
         for acc in task_state["accounts"]:
             if acc["username"] in msg:
-                if "登录" in msg and "成功" not in msg:
+                if "login" in msg and "success" not in msg:
                     _update_account(acc["username"], status="login", detail=msg[-60:])
                 elif "Checkout" in msg:
                     _update_account(acc["username"], status="checkout", detail="")
-                elif "支付" in msg or "Stripe" in msg:
+                elif "payment" in msg or "Stripe" in msg:
                     _update_account(acc["username"], status="paying", detail=msg[-60:])
-                elif "凭据已保存" in msg or "[OK]" in msg:
-                    _update_account(acc["username"], status="success", detail="Pro已开通")
-                elif "失败" in msg:
+                elif "credentials saved" in msg or "[OK]" in msg:
+                    _update_account(acc["username"], status="success", detail="Pro enabled")
+                elif "failed" in msg:
                     _update_account(acc["username"], status="failed", detail=msg[-60:])
                 break
         original_print(*args, **kwargs)
@@ -177,7 +177,7 @@ def _run_task():
         importlib.reload(main)
         main.batch_run("\n".join(lines))
     except Exception as e:
-        original_print(f"任务异常: {e}")
+        original_print(f"Task error: {e}")
     finally:
         builtins.print = original_print
         task_state["running"] = False

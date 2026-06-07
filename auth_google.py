@@ -1,5 +1,5 @@
 """
-Google OAuth 登录 - 用 BitBrowser 自动化完成
+Google OAuth Login - Browser automation using BitBrowser
 """
 import time
 import uuid as uuid_mod
@@ -20,15 +20,15 @@ def _kvid():
 
 def login(email, password, totp_secret, proxies, window_index=0):
     """
-    Google OAuth 登录，返回 (token_info, page, browser_id)
-    token_info 格式: {access_token, refresh_token, csrf_token, profile_arn, user_id, kvid}
-    page: DrissionPage 对象（已登录状态，可复用于支付）
-    browser_id: 用完后需要调用 browser.close + browser.delete
+    Google OAuth login, return (token_info, page, browser_id)
+    token_info format: {access_token, refresh_token, csrf_token, profile_arn, user_id, kvid}
+    page: DrissionPage object (logged-in state, can be reused for payment)
+    browser_id: needs to call browser.close + browser.delete after use
     """
     from proxy import get_proxies_with_check
     _, session_id = get_proxies_with_check()
     browser_id = browser.create(session_id, f"google_{email[:10]}")
-    print(f"  [Google] BitBrowser 创建: {browser_id[:16]}...")
+    print(f"  [Google] BitBrowser created: {browser_id[:16]}...")
 
     try:
         debug_addr = browser.open_browser(browser_id, window_index)
@@ -36,46 +36,46 @@ def login(email, password, totp_secret, proxies, window_index=0):
         co.set_address(debug_addr)
         page = ChromiumPage(co)
 
-        # 启动网络监听，捕获 ExchangeToken 响应
+        # Start network monitoring to capture ExchangeToken response
         page.listen.start('ExchangeToken')
 
         page.get("https://app.kiro.dev/signin")
         time.sleep(3)
 
-        # 点击 Google 登录按钮
+        # Click Google login button
         google_btn = page.ele('text:Google', timeout=10)
         if not google_btn:
             google_btn = page.ele('xpath://button[contains(., "Google")]', timeout=5)
         if google_btn:
             google_btn.click()
-            print(f"  [Google] 点击 Google 登录按钮")
+            print(f"  [Google] Google login button clicked")
             time.sleep(6)
         else:
-            raise RuntimeError("未找到 Google 登录按钮")
+            raise RuntimeError("Google login button not found")
 
-        # 填邮箱
+        # Enter email
         email_input = page.ele('#identifierId', timeout=10)
         if not email_input:
-            raise RuntimeError(f"未找到邮箱输入框, URL: {page.url[:80]}")
+            raise RuntimeError(f"Email input not found, URL: {page.url[:80]}")
         email_input.input(email)
         time.sleep(1)
         _click_next(page)
-        print(f"  [Google] 邮箱已提交")
+        print(f"  [Google] Email submitted")
         time.sleep(6)
 
-        # 填密码
+        # Enter password
         pwd_input = page.ele('xpath://input[@name="Passwd"]', timeout=10)
         if pwd_input:
             pwd_input.input(password)
             time.sleep(1)
             _click_next(page)
-            print(f"  [Google] 密码已提交")
+            print(f"  [Google] Password submitted")
             time.sleep(6)
         else:
             body_text = page.run_js("return document.body ? document.body.innerText.substring(0, 200) : '';")
-            raise RuntimeError(f"未找到密码输入框: {page.url[:80]} | {body_text[:100]}")
+            raise RuntimeError(f"Password input not found: {page.url[:80]} | {body_text[:100]}")
 
-        # 检测手机扫码验证页面
+        # Detect phone verification page
         phone_verify = page.run_js("""
             var body = document.body ? document.body.innerText.toLowerCase() : '';
             if (body.includes('on your phone or tablet') || body.includes('在手机上') || body.includes('在您的手机')
@@ -84,9 +84,9 @@ def login(email, password, totp_secret, proxies, window_index=0):
             return false;
         """)
         if phone_verify:
-            raise RuntimeError("需要手机扫码")
+            raise RuntimeError("Phone verification required")
 
-        # 填 TOTP
+        # Enter TOTP
         totp_input = page.ele('xpath://input[@name="totpPin"]', timeout=8)
         if totp_input:
             if totp_secret.startswith("http"):
@@ -94,20 +94,20 @@ def login(email, password, totp_secret, proxies, window_index=0):
                     totp_resp = requests.get(totp_secret, timeout=10)
                     code = totp_resp.json().get("token", "")
                 except Exception as e:
-                    raise RuntimeError(f"获取2FA验证码失败: {e}")
+                    raise RuntimeError(f"Failed to get 2FA code: {e}")
             else:
                 code = pyotp.TOTP(totp_secret.upper()).now()
             totp_input.input(code)
             time.sleep(1)
             _click_next(page)
-            print(f"  [Google] TOTP 已提交: {code}")
+            print(f"  [Google] TOTP submitted: {code}")
             time.sleep(8)
         else:
-            print(f"  [Google] 无 TOTP 页面")
+            print(f"  [Google] No TOTP page")
             time.sleep(5)
 
-        # 等待 Kiro 完成登录
-        print(f"  [Google] 等待 Kiro 完成登录...")
+        # Wait for Kiro to complete login
+        print(f"  [Google] Waiting for Kiro to complete login...")
         for _ in range(20):
             time.sleep(2)
             current_url = page.url
@@ -116,7 +116,7 @@ def login(email, password, totp_secret, proxies, window_index=0):
             if "consent" in current_url or "accounts.google.com" in current_url:
                 _click_next(page)
 
-        # 提取 cookies（包括 CsrfToken）
+        # Extract cookies (including CsrfToken)
         time.sleep(3)
         cookies_list = page.cookies()
         token_data = {}
@@ -133,14 +133,14 @@ def login(email, password, totp_secret, proxies, window_index=0):
                 token_data['csrf_token'] = value
 
         if not token_data.get('access_token'):
-            raise RuntimeError(f"未获取到 AccessToken, URL: {page.url[:80]}")
+            raise RuntimeError(f"AccessToken not obtained, URL: {page.url[:80]}")
 
-        # 从网络监听中获取 ExchangeToken 响应
+        # Get ExchangeToken response from network monitoring
         kvid = _kvid()
         csrf_token = ''
         profile_arn = ''
 
-        # 等待并获取 ExchangeToken 的响应
+        # Wait and get ExchangeToken response
         packet = page.listen.wait(timeout=5)
         if packet:
             try:
@@ -150,15 +150,15 @@ def login(email, password, totp_secret, proxies, window_index=0):
                     csrf_token = data.get('csrfToken', '')
                     profile_arn = data.get('profileArn', '')
             except Exception as e:
-                print(f"  [Google] 解析 ExchangeToken 响应失败: {e}")
+                print(f"  [Google] Failed to parse ExchangeToken response: {e}")
 
         page.listen.stop()
 
-        print(f"  [Google] 登录成功! UserId: {token_data['user_id'][:20]}...")
+        print(f"  [Google] Login successful! UserId: {token_data['user_id'][:20]}...")
         if csrf_token:
             print(f"  [Google] CSRF: {csrf_token[:20]}...")
         else:
-            print(f"  [Google] 警告: 未获取到 CSRF token")
+            print(f"  [Google] Warning: CSRF token not obtained")
         if profile_arn:
             print(f"  [Google] ProfileArn: {profile_arn[:40]}...")
 

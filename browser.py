@@ -1,5 +1,5 @@
 """
-BitBrowser 指纹浏览器管理
+BitBrowser fingerprint browser management
 """
 import time
 from pathlib import Path
@@ -12,7 +12,7 @@ YESCAPTCHA_EXT = str(SCRIPT_DIR.parent / "extensions" / "yescaptcha")
 
 
 def create(session_id, name):
-    """创建浏览器窗口，返回 browser_id"""
+    """Create a browser window, return browser_id"""
     username = make_proxy_username(session_id)
     payload = {
         "name": name,
@@ -28,12 +28,12 @@ def create(session_id, name):
     resp = requests.post(f"{BITBROWSER_API}/browser/update", json=payload, timeout=15)
     data = resp.json()
     if not data.get("success"):
-        raise RuntimeError(f"BitBrowser 创建失败: {data}")
+        raise RuntimeError(f"BitBrowser creation failed: {data}")
     return data["data"]["id"]
 
 
 def open_browser(browser_id, window_index=0):
-    """打开浏览器窗口（带 YesCaptcha 打码插件），返回 debug 地址"""
+    """Open browser window (with YesCaptcha captcha plugin), return debug address"""
     win_x = (window_index % 5) * 512
     win_y = (window_index // 5) * 480
     payload = {
@@ -49,7 +49,7 @@ def open_browser(browser_id, window_index=0):
     resp = requests.post(f"{BITBROWSER_API}/browser/open", json=payload, timeout=30)
     data = resp.json()
     if not data.get("success"):
-        raise RuntimeError(f"BitBrowser 打开失败: {data}")
+        raise RuntimeError(f"BitBrowser open failed: {data}")
     return data["data"]["http"]
 
 
