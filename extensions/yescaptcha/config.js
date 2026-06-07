@@ -1,49 +1,49 @@
 const config = {
-    clientKey: 'YOUR_YESCAPTCHA_CLIENT_KEY', // 你购买授权的clientKey
-    host: 'https://api.yescaptcha.com', // 服务器地址，默认官网服务器https://api.yescaptcha.com
+    clientKey: 'YOUR_YESCAPTCHA_CLIENT_KEY', // Your purchased YesCaptcha client key
+    host: 'https://api.yescaptcha.com', // API server address, default is official server https://api.yescaptcha.com
 
-    autorun: true, // 自动运行 true or false
-    //遗弃
-    imageclassification: true, // （已弃用！！！）reCaptcha谷歌人机自动识别
-    hcaptcha: true, // hCaptchaHC人机自动识别
-    imagetotext: true, // Coinlist英文数字人机自动识别
-    rainbow: true, // Coinlist排队时粉色按钮自动点击
-    times: 200, // 点击图片的间隔时间，单位毫秒
-    isTextCaptcha: false, // 开启文字验证码识别
-    endTimes: '20',// 在几次识别流程后停止识别
-    isAutoClickCheckBox: true, // 是否自动点击checkBox
-    checkBoxClickDelayTime: "500",// 页面加载之后 延迟多久自动点击checkBox
-    isOpenEndTimes: true,// 是否打开“在几次识别流程后停止识别”这个功能
-    isOpenCloudflare: false, //是否开启Cloudflare验证
-    isOpenCloudflareTurnstileProtocol: false, //是否开启Cloudflare Turnstile协议版
-    isAutoSubmit: true,//一次九宫格验证中，是否自动点击提交按钮
-    autoSubmitDelayTime: 100,// 自动提交之前间隔时间，单位毫秒
-    autoSubmitDelayFloatRate: 0.1,// 自动提交之前间隔时间浮动比例，数值0~1
+    autorun: true, // Auto-run true or false
+    // Deprecated
+    imageclassification: true, // (Deprecated!!!) reCaptcha automatic recognition
+    hcaptcha: true, // hCaptcha automatic recognition
+    imagetotext: true, // Coinlist English/digit automatic recognition
+    rainbow: true, // Coinlist queue pink button auto-click
+    times: 200, // Time interval between image clicks, in milliseconds
+    isTextCaptcha: false, // Enable text captcha recognition
+    endTimes: '20', // Stop recognition after this many attempts
+    isAutoClickCheckBox: true, // Whether to auto-click checkbox
+    checkBoxClickDelayTime: "500", // Delay after page load before auto-clicking checkbox
+    isOpenEndTimes: true, // Enable recognition attempt limit feature
+    isOpenCloudflare: false, // Enable Cloudflare verification
+    isOpenCloudflareTurnstileProtocol: false, // Enable Cloudflare Turnstile protocol version
+    isAutoSubmit: true, // Auto-click submit button in 3x3 grid verification
+    autoSubmitDelayTime: 100, // Delay before auto-submit, in milliseconds
+    autoSubmitDelayFloatRate: 0.1, // Auto-submit delay variation rate, 0~1
     workStatusFlag: '',
     jsControlObjectName: 'yesCaptcha',
     allowJsInject: false,
-    network: { //网络设置
-        hcaptchaVerifyFailDelay: 1000,//在一次解析请求失败后，重试的延迟事件（网络不好的情况）
-        hcaptchaVerifyTry: 3,//单次解析请求的重复此时（网络不好的情况）
+    network: { // Network settings
+        hcaptchaVerifyFailDelay: 1000, // Retry delay after failed recognition request (poor network conditions)
+        hcaptchaVerifyTry: 3, // Single recognition request retry count (poor network conditions)
         recaptchaVerifyFailDelay: 1000,
         recaptchaVerifyTry: 2,
         funcaptchaVerifyFailDelay: 1000,
         funcaptchaVerifyTry: 3
     },
-    //hcaptcha 独立配置
+    // hCaptcha-specific configuration
     hcaptchaConfig: {
-        //是否跳过拖动挑战(已弃用)
+        // Skip drag challenge (deprecated)
         isPassDragChallenge: false,
-        //是否失败刷新
+        // Auto-refresh on failure
         isAutoRefresh: true,
-        //是否将验证码切换为英文
+        // Switch captcha to English interface
         isSwitchToEnglishContent: false,
-        //是否跳过动图挑战
+        // Skip animated challenge
         isPassMoveCanvasChallenge: false,
-        //动图录制时长(ms)
+        // Animation recording duration (ms)
         canvasRecordDuration: 6000
     },
-    //funcatpcha 独立配置
+    // Funcaptcha-specific configuration
     funcaptchaConfig: {
         isOpen: true,
         // "nothing" | "refresh" 
@@ -52,41 +52,41 @@ const config = {
         // "nothing"  | "submit" | "restart"
         actionAfterOneRecFail: "nothing",
 
-        // "nothing" | "tryAgain" | "restart" ,
+        // "nothing" | "tryAgain" | "restart"
         actionAfterRecFail: "nothing",
 
         actionDelay: 3000,
 
-        // 是否自动点击前置页开始按钮
+        // Auto-click pre-page start button
         isAutoClickPrePage: true
     },
-    //recaptcha 独立配置
+    // reCaptcha-specific configuration
     recaptchaConfig: {
         isOpen: true,
         isUseNewScript: true,
-        //单图淡入等待延迟（ms）
+        // Single image fade-in delay (ms)
         delayFor1X1: 3000,
-        //适应invisible模式。值为true，非invisible模式可能会出现识别卡住的情况
+        // Adapt to invisible mode. Set to true; non-invisible mode may cause recognition to hang
         isAdaptInvisible: false,
-        //是否开启V3协议
+        // Enable V3 protocol
         isOpenProtocol: false,
-        //V3协议接口类型 RecaptchaV3TaskProxyless | RecaptchaV3TaskProxylessM1 | RecaptchaV3TaskProxylessM1S7 
+        // V3 protocol interface type: RecaptchaV3TaskProxyless | RecaptchaV3TaskProxylessM1 | RecaptchaV3TaskProxylessM1S7 
         V3TaskType: 'RecaptchaV3TaskProxylessM1S7',
-        //V2协议接口类型 NoCaptchaTaskProxyless | RecaptchaV2TaskProxyless
+        // V2 protocol interface type: NoCaptchaTaskProxyless | RecaptchaV2TaskProxyless
         V2TaskType: 'RecaptchaV2TaskProxyless'
     },
     textCaptchaConfig: {
-        //是否将服务器传回来的验证结果转换为大写字母
+        // Convert server-returned recognition result to uppercase
         isTransToUppercase: false,
-        // 接口task类型 ImageToTextTaskTest | ImageToTextTaskM1
+        // Interface task type: ImageToTextTaskTest | ImageToTextTaskM1
         taskType: 'ImageToTextTaskTest'
     },
-    //网站黑名单配置
+    // Website blacklist configuration
     blackListConfig: {
         isOpen: false,
         urlList: []
     },
-    //网站白名单配置
+    // Website whitelist configuration
     whiteListConfig: {
         isOpen: false,
         urlList: []
@@ -94,11 +94,11 @@ const config = {
     awsCaptchaConfig: {
         isOpen: true
     },
-    // 是否隐藏key。为true，popup前端展示secretKey为***，
+    // Hide key. When true, popup frontend displays secretKey as ***
     isHideKey: false
 }
 
-// 以下代码请勿修改
+// Code below should not be modified
 chrome.storage.local.get(['config'], function (result) {
     if (result.config) return
     if (chrome.management.getAll) {
@@ -108,9 +108,9 @@ chrome.storage.local.get(['config'], function (result) {
                 && item.name.includes("YesCaptcha")
                 && item.enabled === true
             ).length > 1 && (config.isInstallConflict = true)
-            chrome.storage.local.set({ config })// 存储配置
+            chrome.storage.local.set({ config }) // Store configuration
         });
     } else {
-        chrome.storage.local.set({ config })// 存储配置
+        chrome.storage.local.set({ config }) // Store configuration
     }
 })
