@@ -1,5 +1,5 @@
 """
-代理管理 - BestProxy socks5 代理获取和验活
+Proxy Management - BestProxy SOCKS5 proxy acquisition and validation
 """
 import uuid as uuid_mod
 import requests
@@ -17,7 +17,7 @@ def get_proxies(session_id):
 
 
 def get_proxies_with_check(max_retries=10):
-    """获取一个验证通过的美国代理，返回 (proxies_dict, session_id)"""
+    """Get a US proxy that passed verification, return (proxies_dict, session_id)"""
     for attempt in range(max_retries):
         session_id = uuid_mod.uuid4().hex[:12]
         proxies = get_proxies(session_id)
@@ -31,12 +31,12 @@ def get_proxies_with_check(max_retries=10):
                 ip = data.get("query", "unknown")
                 country = data.get("countryCode", "")
                 if country == "US":
-                    print(f"  [代理] 美国IP验证通过: {ip} (尝试{attempt+1})")
+                    print(f"  [Proxy] US IP verification passed: {ip} (attempt {attempt+1})")
                     return proxies, session_id
                 else:
-                    print(f"  [代理] 非美国IP({country}: {ip})，换IP... ({attempt+1}/{max_retries})")
+                    print(f"  [Proxy] Non-US IP ({country}: {ip}), changing IP... ({attempt+1}/{max_retries})")
         except Exception:
             pass
         if attempt < max_retries - 1:
-            print(f"  [代理] IP不通，换新IP重试... ({attempt+1}/{max_retries})")
-    raise RuntimeError(f"代理验证失败: 连续 {max_retries} 次未获取到美国IP")
+            print(f"  [Proxy] IP not reachable, retrying with new IP... ({attempt+1}/{max_retries})")
+    raise RuntimeError(f"Proxy verification failed: failed to get US IP after {max_retries} attempts")

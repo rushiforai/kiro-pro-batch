@@ -1,5 +1,5 @@
 """
-Kiro 订阅管理 - 获取 Checkout URL、查询状态、开启超售
+Kiro subscription management - Get Checkout URL, check status, enable overage
 """
 import time
 import uuid as uuid_mod
@@ -10,7 +10,7 @@ from config import KIRO_BASE, SUBSCRIPTION_PLAN
 
 
 def get_checkout_url(token_info, proxies):
-    """获取 Stripe Checkout URL"""
+    """Get Stripe Checkout URL"""
     headers = _make_headers(token_info)
     sub_type_map = {"pro": "Q_DEVELOPER_STANDALONE_PRO", "pro+": "Q_DEVELOPER_STANDALONE_PRO_PLUS"}
     sub_type_value = sub_type_map.get(SUBSCRIPTION_PLAN, "Q_DEVELOPER_STANDALONE_PRO")
@@ -19,12 +19,12 @@ def get_checkout_url(token_info, proxies):
     r = cbor2.loads(resp.content)
     checkout_url = r.get("encodedVerificationUrl", "")
     if not checkout_url:
-        raise RuntimeError(f"未获取到 Checkout URL: {r}")
+        raise RuntimeError(f"Failed to get Checkout URL: {r}")
     return checkout_url
 
 
 def check_subscription(token_info, proxies):
-    """查询订阅状态，返回 type 字符串"""
+    """Query subscription status, return type string"""
     headers = _make_headers(token_info)
     resp = _request_with_retry('POST', f"{KIRO_BASE}/service/KiroWebPortalService/operation/GetUserUsageAndLimits",
         data=cbor2.dumps({"origin": "KIRO_IDE", "isEmailRequired": False, "profileArn": token_info.get("profile_arn", "")}),
@@ -36,31 +36,31 @@ def check_subscription(token_info, proxies):
 
 
 def _request_with_retry(method, url, max_retries=3, **kwargs):
-    """带重试的请求，处理代理 SSL 断连"""
+    """Request with retry, handle proxy SSL disconnect"""
     for attempt in range(max_retries):
         try:
             resp = requests.request(method, url, **kwargs)
             return resp
         except (requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
             if attempt < max_retries - 1:
-                print(f"  [网络] 连接异常，重试... ({attempt+1}/{max_retries})")
+                print(f"  [Network] Connection error, retrying... ({attempt+1}/{max_retries})")
                 time.sleep(3)
             else:
                 raise
 
 
 def enable_overage(token_info, proxies):
-    """开启超售，轮询确认"""
+    """Enable overage, poll to confirm"""
     headers = _make_headers(token_info)
     update_body = cbor2.dumps({"overageConfiguration": {"overageEnabled": True}, "profileArn": token_info["profile_arn"]})
     check_body = cbor2.dumps({"origin": "KIRO_IDE", "isEmailRequired": True, "profileArn": token_info["profile_arn"]})
 
-    print("  [超售] 发送 UpdateBillingPreferences...")
+    print("  [Overage] Sending UpdateBillingPreferences...")
     _request_with_retry('POST', f"{KIRO_BASE}/service/KiroWebPortalService/operation/UpdateBillingPreferences",
         data=update_body, headers={**headers, "amz-sdk-invocation-id": str(uuid_mod.uuid4())}, timeout=15, proxies=proxies)
 
     for i, wait in enumerate([40, 35, 30, 25]):
-        print(f"  [超售] 等待 {wait}s 后第{i+1}次检查...")
+        print(f"  [Overage] Waiting {wait}s before check {i+1}...")
         time.sleep(wait)
         _request_with_retry('POST', f"{KIRO_BASE}/service/KiroWebPortalService/operation/UpdateBillingPreferences",
             data=update_body, headers={**headers, "amz-sdk-invocation-id": str(uuid_mod.uuid4())}, timeout=15, proxies=proxies)
@@ -69,11 +69,11 @@ def enable_overage(token_info, proxies):
         if resp.status_code == 200:
             r = cbor2.loads(resp.content)
             enabled = r.get("overageConfiguration", {}).get("overageEnabled", False)
-            print(f"  [超售] 第{i+1}次检查: overageEnabled = {enabled}")
+            print(f"  [Overage] Check {i+1}: overageEnabled = {enabled}")
             if enabled:
-                print("  [超售] 超售已成功开启!")
+                print("  [Overage] Overage successfully enabled!")
                 return True
-    print("  [超售] 4次检查均未确认开启")
+    print("  [Overage] 4 checks all failed to confirm enabling")
     return False
 
 

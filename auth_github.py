@@ -1,5 +1,5 @@
 """
-GitHub OAuth 纯协议登录 - 不需要浏览器
+GitHub OAuth Pure Protocol Login - No browser required
 """
 import re
 import time
@@ -24,7 +24,7 @@ def _kvid():
 
 
 def login(github_username, github_password, totp_secret, proxies):
-    """纯协议完成 GitHub OAuth 登录，返回 token_info dict"""
+    """Complete GitHub OAuth login using pure protocol, return token_info dict"""
     kvid = _kvid()
     cv = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b"=").decode()
     cc = base64.urlsafe_b64encode(hashlib.sha256(cv.encode()).digest()).rstrip(b"=").decode()
@@ -49,7 +49,7 @@ def login(github_username, github_password, totp_secret, proxies):
     r = s.get(rurl, allow_redirects=True)
     at_match = re.search(r'name="authenticity_token" value="([^"]+)"', r.text)
     if not at_match:
-        raise RuntimeError(f"GitHub 登录页解析失败: {r.url[:80]}")
+        raise RuntimeError(f"GitHub login page parsing failed: {r.url[:80]}")
     at = at_match.group(1)
     rtm = re.search(r'name="return_to" value="([^"]*)"', r.text)
 
@@ -60,7 +60,7 @@ def login(github_username, github_password, totp_secret, proxies):
 
     at_match = re.search(r'name="authenticity_token" value="([^"]+)"', r.text)
     if not at_match:
-        raise RuntimeError(f"GitHub 密码提交后解析失败: {r.url[:80]}")
+        raise RuntimeError(f"GitHub password submission parsing failed: {r.url[:80]}")
     at = at_match.group(1)
 
     # TOTP
@@ -82,7 +82,7 @@ def login(github_username, github_password, totp_secret, proxies):
 
     code = parse_qs(urlparse(r.url).query).get("code", [""])[0]
     if not code:
-        raise RuntimeError(f"GitHub OAuth 未获取到 code, url={r.url[:100]}")
+        raise RuntimeError(f"GitHub OAuth failed to get code, url={r.url[:100]}")
 
     sess = requests.Session()
     sess.proxies = proxies
@@ -103,7 +103,7 @@ def login(github_username, github_password, totp_secret, proxies):
     user_id = cookies_dict.get("UserId", "")
     refresh_token = cookies_dict.get("RefreshToken", "")
 
-    print(f"  [GitHub] 协议登录成功! UserId: {user_id[:20]}...")
+    print(f"  [GitHub] Protocol login successful! UserId: {user_id[:20]}...")
 
     return {
         "access_token": access_token,
