@@ -13,7 +13,7 @@ from DrissionPage import ChromiumPage, ChromiumOptions
 import browser
 from proxy import get_proxies_with_check
 
-INVALID_CARD_FILE = Path(__file__).parent.parent / "shujuku" / "无效卡.json"
+INVALID_CARD_FILE = Path(__file__).parent.parent / "database" / "invalid_cards.json"
 
 
 def _save_invalid_card(card_info):
@@ -163,7 +163,7 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
         time.sleep(2)
 
     # Fill card number
-    card_input = page.ele('xpath://input[contains(@aria-label,"Card number") or contains(@aria-label,"卡号")]', timeout=10)
+    card_input = page.ele('xpath://input[contains(@aria-label,"Card number")]', timeout=10)
     if card_input:
         card_input.input(card["number"])
         time.sleep(2)
@@ -180,13 +180,13 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
             return "invalid_card"
 
     # Fill expiry
-    exp_input = page.ele('xpath://input[contains(@aria-label,"Expir") or contains(@aria-label,"到期")]', timeout=5)
+    exp_input = page.ele('xpath://input[contains(@aria-label,"Expir")]', timeout=5)
     if exp_input:
         exp_input.input(card["expiry"])
         time.sleep(1)
 
     # Fill CVV
-    cvv_input = page.ele('xpath://input[contains(@aria-label,"CVC") or contains(@aria-label,"安全码")]', timeout=5)
+    cvv_input = page.ele('xpath://input[contains(@aria-label,"CVC")]', timeout=5)
     if cvv_input:
         cvv_input.input(card["cvv"])
         time.sleep(1)
@@ -200,8 +200,6 @@ def pay(checkout_url, card_info, page, page_already_loaded=False):
 
     # Manual address entry
     manual_btn = page.ele("text:Enter address manually", timeout=3)
-    if not manual_btn:
-        manual_btn = page.ele("text:手动输入地址", timeout=2)
     if manual_btn:
         manual_btn.click()
         time.sleep(2)

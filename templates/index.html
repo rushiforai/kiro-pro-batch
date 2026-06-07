@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -166,33 +166,33 @@ tr:hover td { background: rgba(99, 102, 241, 0.03); }
     <div class="header">
         <h1><i class="ri-rocket-2-fill"></i> Kiro Pro Control Panel</h1>
         <div class="header-actions">
-            <button class="btn btn-ghost" onclick="showModal('import-accounts')"><i class="ri-user-add-line"></i>导入账户</button>
-            <button class="btn btn-ghost" onclick="showModal('import-cards')"><i class="ri-bank-card-line"></i>导入卡密</button>
-            <button class="btn btn-ghost" onclick="showModal('config')"><i class="ri-settings-3-line"></i>配置</button>
-            <button class="btn btn-success" onclick="startTask()"><i class="ri-play-fill"></i>开始</button>
-            <button class="btn btn-danger" onclick="stopTask()"><i class="ri-stop-fill"></i>停止</button>
+            <button class="btn btn-ghost" onclick="showModal('import-accounts')"><i class="ri-user-add-line"></i>Import Accounts</button>
+            <button class="btn btn-ghost" onclick="showModal('import-cards')"><i class="ri-bank-card-line"></i>Import Cards</button>
+            <button class="btn btn-ghost" onclick="showModal('config')"><i class="ri-settings-3-line"></i>Settings</button>
+            <button class="btn btn-success" onclick="startTask()"><i class="ri-play-fill"></i>Start</button>
+            <button class="btn btn-danger" onclick="stopTask()"><i class="ri-stop-fill"></i>Stop</button>
         </div>
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">总账号</div></div>
-        <div class="stat-card warning"><div class="stat-value" id="stat-running">0</div><div class="stat-label">进行中</div></div>
-        <div class="stat-card success"><div class="stat-value" id="stat-success">0</div><div class="stat-label">成功</div></div>
-        <div class="stat-card danger"><div class="stat-value" id="stat-failed">0</div><div class="stat-label">失败</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total</div></div>
+        <div class="stat-card warning"><div class="stat-value" id="stat-running">0</div><div class="stat-label">Running</div></div>
+        <div class="stat-card success"><div class="stat-value" id="stat-success">0</div><div class="stat-label">Success</div></div>
+        <div class="stat-card danger"><div class="stat-value" id="stat-failed">0</div><div class="stat-label">Failed</div></div>
     </div>
 
     <div class="table-container">
         <div class="table-header">
-            <h3><i class="ri-list-check-2"></i> 任务列表</h3>
+            <h3><i class="ri-list-check-2"></i> Task List</h3>
             <span id="status-indicator" style="font-size:12px;color:var(--text-secondary);"></span>
         </div>
         <div id="table-body">
-            <div class="empty-state"><i class="ri-inbox-line"></i><p>导入账户后开始运行</p></div>
+            <div class="empty-state"><i class="ri-inbox-line"></i><p>Import accounts to begin</p></div>
         </div>
     </div>
 
     <div class="history">
-        <h3><i class="ri-history-line"></i> 历史批次</h3>
+        <h3><i class="ri-history-line"></i> History</h3>
         <div id="history-list"></div>
     </div>
 </div>
@@ -200,41 +200,41 @@ tr:hover td { background: rgba(99, 102, 241, 0.03); }
 <!-- Modals -->
 <div class="modal-overlay" id="modal-import-accounts">
 <div class="modal">
-    <h3><i class="ri-user-add-line"></i> 导入账户</h3>
+    <h3><i class="ri-user-add-line"></i> Import Accounts</h3>
     <div class="hint">
-        Google: 邮箱----密码----totp 或 邮箱----密码----恢复邮箱----totp/2fa链接<br>
-        Builder ID: 邮箱----接码链接
+        Google: email----password----totp or email----password----recovery-email----totp/2fa-link<br>
+        Builder ID: email----code-link
     </div>
-    <textarea id="accounts-text" placeholder="每行一个账号，支持混合格式..."></textarea>
+    <textarea id="accounts-text" placeholder="One account per line, mixed formats supported..."></textarea>
     <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="hideModals()">取消</button>
-        <button class="btn btn-primary" onclick="importAccounts()">确认导入</button>
+        <button class="btn btn-ghost" onclick="hideModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="importAccounts()">Import</button>
     </div>
 </div>
 </div>
 
 <div class="modal-overlay" id="modal-import-cards">
 <div class="modal">
-    <h3><i class="ri-bank-card-line"></i> 导入卡密</h3>
-    <div class="hint">每行一个卡密，或逗号分隔。支持 KM-HUAKAI-xxx 格式。</div>
+    <h3><i class="ri-bank-card-line"></i> Import Cards</h3>
+    <div class="hint">One credential per line, or comma-separated. Supports KM-HUAKAI-xxx format.</div>
     <textarea id="cards-text" placeholder="KM-HUAKAI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-20260519..."></textarea>
     <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="hideModals()">取消</button>
-        <button class="btn btn-primary" onclick="importCards()">确认导入</button>
+        <button class="btn btn-ghost" onclick="hideModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="importCards()">Import</button>
     </div>
 </div>
 </div>
 
 <div class="modal-overlay" id="modal-config">
 <div class="modal">
-    <h3><i class="ri-settings-3-line"></i> 运行配置</h3>
-    <label>并发线程数</label><input type="number" id="cfg-workers" value="8" min="1" max="20">
-    <label>订阅套餐</label><select id="cfg-plan"><option value="pro">Pro ($19/月)</option><option value="pro+" selected>Pro+ ($39/月)</option></select>
-    <label>开卡渠道</label><select id="cfg-channel"><option value="huakai" selected>华开卡</option><option value="3r">3r卡</option><option value="10r">10r卡</option></select>
-    <label>每卡开号数</label><input type="number" id="cfg-per-card" value="1" min="1" max="3">
+    <h3><i class="ri-settings-3-line"></i> Runtime Settings</h3>
+    <label>Concurrent Workers</label><input type="number" id="cfg-workers" value="8" min="1" max="20">
+    <label>Subscription Plan</label><select id="cfg-plan"><option value="pro">Pro ($19/mo)</option><option value="pro+" selected>Pro+ ($39/mo)</option></select>
+    <label>Card Channel</label><select id="cfg-channel"><option value="huakai" selected>HuaKai</option><option value="3r">3r</option><option value="10r">10r</option></select>
+    <label>Accounts Per Card</label><input type="number" id="cfg-per-card" value="1" min="1" max="3">
     <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="hideModals()">取消</button>
-        <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+        <button class="btn btn-ghost" onclick="hideModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveConfig()">Save</button>
     </div>
 </div>
 </div>
@@ -270,13 +270,13 @@ function startTask() { fetch('/api/start', {method:'POST'}).then(r=>r.json()).th
 function stopTask() { fetch('/api/stop', {method:'POST'}).then(r=>r.json()).then(d=>{ refresh(); }); }
 
 const statusMap = {
-    waiting: {text:'等待中', badge:'waiting', icon:'ri-time-line'},
-    login: {text:'登录中', badge:'login', icon:'ri-loader-4-line'},
-    checkout: {text:'获取链接', badge:'checkout', icon:'ri-link'},
-    paying: {text:'支付中', badge:'paying', icon:'ri-bank-card-line'},
-    success: {text:'已开通', badge:'success', icon:'ri-check-line'},
-    failed: {text:'失败', badge:'failed', icon:'ri-close-line'},
-    skipped: {text:'跳过', badge:'skipped', icon:'ri-skip-forward-line'},
+    waiting: {text:'Waiting', badge:'waiting', icon:'ri-time-line'},
+    login: {text:'Login', badge:'login', icon:'ri-loader-4-line'},
+    checkout: {text:'Checkout', badge:'checkout', icon:'ri-link'},
+    paying: {text:'Paying', badge:'paying', icon:'ri-bank-card-line'},
+    success: {text:'Success', badge:'success', icon:'ri-check-line'},
+    failed: {text:'Failed', badge:'failed', icon:'ri-close-line'},
+    skipped: {text:'Skipped', badge:'skipped', icon:'ri-skip-forward-line'},
 };
 
 function refresh() {
@@ -285,14 +285,14 @@ function refresh() {
         document.getElementById('stat-running').textContent = data.stats.running;
         document.getElementById('stat-success').textContent = data.stats.success;
         document.getElementById('stat-failed').textContent = data.stats.failed;
-        document.getElementById('status-indicator').textContent = data.running ? '● 运行中' : '○ 空闲';
+        document.getElementById('status-indicator').textContent = data.running ? '● Running' : '○ Idle';
         document.getElementById('status-indicator').style.color = data.running ? 'var(--success)' : 'var(--text-secondary)';
 
         const tbody = document.getElementById('table-body');
         if(data.accounts.length === 0) {
-            tbody.innerHTML = '<div class="empty-state"><i class="ri-inbox-line"></i><p>导入账户后开始运行</p></div>';
+            tbody.innerHTML = '<div class="empty-state"><i class="ri-inbox-line"></i><p>Import accounts to begin</p></div>';
         } else {
-            tbody.innerHTML = '<table><thead><tr><th>#</th><th>账号</th><th>模式</th><th>状态</th><th>详情</th><th>耗时</th></tr></thead><tbody>' +
+            tbody.innerHTML = '<table><thead><tr><th>#</th><th>Account</th><th>Type</th><th>Status</th><th>Details</th><th>Time</th></tr></thead><tbody>' +
             data.accounts.map((a, i) => {
                 const s = statusMap[a.status] || statusMap.waiting;
                 return `<tr><td style="color:var(--text-secondary)">${i+1}</td><td>${a.username}</td><td style="color:var(--text-secondary)">${a.mode==='builderid'?'Builder ID':'Google'}</td><td><span class="badge badge-${s.badge}"><i class="${s.icon}"></i>${s.text}</span></td><td style="font-size:11px;color:var(--text-secondary);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.detail||'-'}</td><td style="color:var(--text-secondary);font-size:12px;">${a.elapsed||'-'}</td></tr>`;
@@ -301,7 +301,7 @@ function refresh() {
 
         const hist = document.getElementById('history-list');
         if(data.history.length) {
-            hist.innerHTML = data.history.map(h => `<div class="history-item"><span>${h.time}</span><span>${h.total}个账号</span><span class="success-tag">${h.success}成功</span><span>${h.failed}失败</span></div>`).join('');
+            hist.innerHTML = data.history.map(h => `<div class="history-item"><span>${h.time}</span><span>${h.total} accounts</span><span class="success-tag">${h.success} success</span><span>${h.failed} failed</span></div>`).join('');
         }
 
         if(data.config.workers) document.getElementById('cfg-workers').value = data.config.workers;
